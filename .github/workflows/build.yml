@@ -28,7 +28,7 @@ jobs:
       with:
         gradle-version: '8.7'
 
-    - name: Force Generate Full Chrome Browser Project
+    - name: Force Generate Glass-UI Chromer
       run: |
         # 1. gradle.properties
         cat << 'EOF' > gradle.properties
@@ -80,8 +80,8 @@ jobs:
                 applicationId = "app.hatent.chromer"
                 minSdk = 26
                 targetSdk = 34
-                versionCode = 2
-                versionName = "2.0"
+                versionCode = 3
+                versionName = "2.5"
             }
 
             buildTypes {
@@ -118,7 +118,7 @@ jobs:
                 android:supportsRtl="true"
                 android:usesCleartextTraffic="true"
                 android:hardwareAccelerated="true"
-                android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+                android:theme="@style/Theme.MaterialComponents.Light.NoActionBar">
                 <activity
                     android:name=".MainActivity"
                     android:exported="true"
@@ -132,7 +132,7 @@ jobs:
         </manifest>
         EOF
 
-        # 6. activity_main.xml
+        # 6. activity_main.xml (すりガラス調ボトムバー付き)
         rm -rf app/src/main/res/layout
         mkdir -p app/src/main/res/layout
         cat << 'EOF' > app/src/main/res/layout/activity_main.xml
@@ -148,14 +148,15 @@ jobs:
                 android:layout_height="match_parent"
                 android:orientation="vertical">
 
+                <!-- ページ内検索バー -->
                 <LinearLayout
                     android:id="@+id/findInPageBar"
                     android:layout_width="match_parent"
                     android:layout_height="48dp"
-                    android:background="#EFEFEF"
+                    android:background="#F0FFFFFF"
                     android:gravity="center_vertical"
-                    android:paddingLeft="8dp"
-                    android:paddingRight="8dp"
+                    android:paddingLeft="12dp"
+                    android:paddingRight="12dp"
                     android:visibility="gone">
 
                     <EditText
@@ -163,32 +164,30 @@ jobs:
                         android:layout_width="0dp"
                         android:layout_height="36dp"
                         android:layout_weight="1"
-                        android:background="#FFFFFF"
+                        android:background="@null"
                         android:hint="ページ内を検索"
                         android:imeOptions="actionSearch"
                         android:inputType="text"
-                        android:paddingLeft="8dp"
-                        android:paddingRight="8dp"
                         android:textSize="14sp" />
 
                     <Button
                         android:id="@+id/btnFindPrev"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
                         android:background="?android:attr/selectableItemBackgroundBorderless"
                         android:text="▲" />
 
                     <Button
                         android:id="@+id/btnFindNext"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
                         android:background="?android:attr/selectableItemBackgroundBorderless"
                         android:text="▼" />
 
                     <Button
                         android:id="@+id/btnFindClose"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
                         android:background="?android:attr/selectableItemBackgroundBorderless"
                         android:text="✕" />
                 </LinearLayout>
@@ -206,15 +205,16 @@ jobs:
                     android:layout_height="0dp"
                     android:layout_weight="1" />
 
+                <!-- 半透明すりガラス下部バー -->
                 <LinearLayout
                     android:id="@+id/bottomBar"
                     android:layout_width="match_parent"
-                    android:layout_height="52dp"
-                    android:background="#F8F8F8"
+                    android:layout_height="54dp"
+                    android:background="#EBF8F9FA"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
-                    android:paddingLeft="4dp"
-                    android:paddingRight="4dp">
+                    android:paddingLeft="6dp"
+                    android:paddingRight="6dp">
 
                     <Button
                         android:id="@+id/btnBack"
@@ -222,7 +222,8 @@ jobs:
                         android:layout_height="38dp"
                         android:background="?android:attr/selectableItemBackgroundBorderless"
                         android:text="‹"
-                        android:textSize="20sp" />
+                        android:textColor="#1C1C1E"
+                        android:textSize="22sp" />
 
                     <Button
                         android:id="@+id/btnForward"
@@ -230,30 +231,33 @@ jobs:
                         android:layout_height="38dp"
                         android:background="?android:attr/selectableItemBackgroundBorderless"
                         android:text="›"
-                        android:textSize="20sp" />
+                        android:textColor="#1C1C1E"
+                        android:textSize="22sp" />
 
                     <EditText
                         android:id="@+id/etUrl"
                         android:layout_width="0dp"
                         android:layout_height="38dp"
-                        android:layout_marginLeft="4dp"
-                        android:layout_marginRight="4dp"
+                        android:layout_marginLeft="6dp"
+                        android:layout_marginRight="6dp"
                         android:layout_weight="1"
-                        android:hint="検索またはWebサイト名"
+                        android:hint="Googleで検索またはURL"
                         android:imeOptions="actionGo"
                         android:inputType="textUri"
                         android:maxLines="1"
-                        android:paddingLeft="12dp"
-                        android:paddingRight="12dp"
+                        android:paddingLeft="14dp"
+                        android:paddingRight="14dp"
+                        android:textColor="#1C1C1E"
                         android:textSize="13sp" />
 
                     <Button
                         android:id="@+id/btnTabs"
-                        android:layout_width="38dp"
-                        android:layout_height="38dp"
+                        android:layout_width="34dp"
+                        android:layout_height="34dp"
                         android:background="?android:attr/selectableItemBackgroundBorderless"
                         android:text="1"
-                        android:textSize="13sp"
+                        android:textColor="#1C1C1E"
+                        android:textSize="12sp"
                         android:textStyle="bold" />
 
                     <Button
@@ -262,7 +266,8 @@ jobs:
                         android:layout_height="38dp"
                         android:background="?android:attr/selectableItemBackgroundBorderless"
                         android:text="⋮"
-                        android:textSize="18sp"
+                        android:textColor="#1C1C1E"
+                        android:textSize="19sp"
                         android:textStyle="bold" />
                 </LinearLayout>
             </LinearLayout>
@@ -277,7 +282,7 @@ jobs:
         </FrameLayout>
         EOF
 
-        # 7. Kotlinソースコード生成
+        # 7. Kotlinソースコードの生成
         rm -rf app/src/main/java
         mkdir -p app/src/main/java/app/hatent/chromer
 
@@ -352,7 +357,7 @@ jobs:
         }
         EOF
 
-        # MainActivity.kt
+        # MainActivity.kt (独自すりガラスUI ＆ Google検索エンジン統合版)
         cat << 'EOF' > app/src/main/java/app/hatent/chromer/MainActivity.kt
         package app.hatent.chromer
 
@@ -365,6 +370,7 @@ jobs:
         import android.net.Uri
         import android.os.Bundle
         import android.os.Environment
+        import android.view.Gravity
         import android.view.View
         import android.view.ViewGroup
         import android.view.inputmethod.EditorInfo
@@ -372,22 +378,25 @@ jobs:
         import android.widget.*
         import androidx.activity.OnBackPressedCallback
         import androidx.activity.result.contract.ActivityResultContracts
-        import androidx.appcompat.app.AlertDialog
         import androidx.appcompat.app.AppCompatActivity
+        import com.google.android.material.bottomsheet.BottomSheetDialog
         import org.json.JSONArray
         import org.json.JSONObject
         import java.util.UUID
 
         data class BrowserTab(
             val id: String = UUID.randomUUID().toString(),
-            var title: String = "新しいタブ",
-            var url: String = "https://duckduckgo.com",
+            var title: String = "Google",
+            var url: String = "https://www.google.com",
             var isDesktopMode: Boolean = false,
             var isIncognito: Boolean = false,
             val webView: WebView
         )
 
         class MainActivity : AppCompatActivity() {
+
+            private val DEFAULT_URL = "https://www.google.com"
+
             private lateinit var webViewContainer: FrameLayout
             private lateinit var fullscreenContainer: FrameLayout
             private lateinit var etUrl: EditText
@@ -431,24 +440,29 @@ jobs:
                 val btnFindNext = findViewById<Button>(R.id.btnFindNext)
                 val btnFindClose = findViewById<Button>(R.id.btnFindClose)
 
+                // アドレスバーのすりガラス調カプセル装飾
                 val pillDrawable = GradientDrawable().apply {
-                    setColor(Color.parseColor("#EBEBEB"))
-                    cornerRadius = 30f
+                    setColor(Color.parseColor("#E5E9EE"))
+                    cornerRadius = 35f
+                    setStroke(1, Color.parseColor("#15000000"))
                 }
                 etUrl.background = pillDrawable
 
+                // タブボタンの丸角バッジ
                 val tabDrawable = GradientDrawable().apply {
-                    setStroke(3, Color.parseColor("#333333"))
+                    setColor(Color.parseColor("#E5E9EE"))
+                    setStroke(2, Color.parseColor("#2C2C2E"))
                     cornerRadius = 10f
                 }
                 btnTabs.background = tabDrawable
 
-                addNewTab("https://duckduckgo.com", false)
+                // Googleで最初のタブを初期化
+                addNewTab(DEFAULT_URL, false)
 
                 btnBack.setOnClickListener { currentWebView()?.let { if (it.canGoBack()) it.goBack() } }
                 btnForward.setOnClickListener { currentWebView()?.let { if (it.canGoForward()) it.goForward() } }
-                btnTabs.setOnClickListener { showTabSwitcher() }
-                btnMenu.setOnClickListener { showChromeMenu() }
+                btnTabs.setOnClickListener { showGlassTabSwitcher() }
+                btnMenu.setOnClickListener { showGlassMenu() }
 
                 etUrl.setOnEditorActionListener { _, actionId, _ ->
                     if (actionId == EditorInfo.IME_ACTION_GO) {
@@ -499,7 +513,7 @@ jobs:
             private fun addNewTab(url: String, isIncognito: Boolean) {
                 val wv = WebView(this)
                 setupWebView(wv, isIncognito)
-                val tab = BrowserTab(title = "新しいタブ", url = url, isIncognito = isIncognito, webView = wv)
+                val tab = BrowserTab(title = "Google", url = url, isIncognito = isIncognito, webView = wv)
                 tabs.add(tab)
                 switchToTab(tabs.size - 1)
                 wv.loadUrl(url)
@@ -523,7 +537,7 @@ jobs:
                 val tab = tabs.removeAt(index)
                 tab.webView.destroy()
                 if (tabs.isEmpty()) {
-                    addNewTab("https://duckduckgo.com", false)
+                    addNewTab(DEFAULT_URL, false)
                 } else {
                     val nextIndex = if (index >= tabs.size) tabs.size - 1 else index
                     switchToTab(nextIndex)
@@ -579,7 +593,7 @@ jobs:
                     override fun onPageFinished(view: WebView?, url: String?) {
                         super.onPageFinished(view, url)
                         progressBar.visibility = View.GONE
-                        val title = view?.title ?: url ?: "タブ"
+                        val title = view?.title ?: url ?: "Google"
                         currentTab()?.let {
                             it.title = title
                             it.url = url ?: it.url
@@ -631,58 +645,346 @@ jobs:
                 findViewById<View>(R.id.mainBrowserLayout).visibility = View.VISIBLE
             }
 
+            // Google検索をデフォルトにしたURL読み込み
             private fun loadInputUrl() {
                 val input = etUrl.text.toString().trim()
                 if (input.isEmpty()) return
-                val url = if (input.startsWith("http://") || input.startsWith("https://")) input
-                else if (input.contains(".") && !input.contains(" ")) "https://$input"
-                else "https://duckduckgo.com/?q=$input"
+                val url = if (input.startsWith("http://") || input.startsWith("https://")) {
+                    input
+                } else if (input.contains(".") && !input.contains(" ")) {
+                    "https://$input"
+                } else {
+                    "https://www.google.com/search?q=$input"
+                }
                 currentWebView()?.loadUrl(url)
             }
 
-            private fun showChromeMenu() {
-                val tab = currentTab()
-                val desktopText = if (tab?.isDesktopMode == true) "☑ PC版サイト" else "☐ PC版サイト"
-                val items = arrayOf(
-                    "＋ 新しいタブ", "🕶 新しいシークレットタブ", "⭐️ このページをブックマーク",
-                    "📑 ブックマーク一覧", "🕒 履歴", "🔍 ページ内検索", desktopText,
-                    "↗️ ページを共有", "🧩 拡張機能", "↻ ページの再読み込み"
-                )
-                AlertDialog.Builder(this)
-                    .setItems(items) { _, which ->
-                        when (which) {
-                            0 -> addNewTab("https://duckduckgo.com", false)
-                            1 -> addNewTab("https://duckduckgo.com", true)
-                            2 -> saveCurrentBookmark()
-                            3 -> showBookmarksDialog()
-                            4 -> showHistoryDialog()
-                            5 -> { findInPageBar.visibility = View.VISIBLE; etFindQuery.requestFocus() }
-                            6 -> toggleDesktopMode()
-                            7 -> shareCurrentPage()
-                            8 -> showExtensionDialog()
-                            9 -> currentWebView()?.reload()
-                        }
-                    }.show()
+            // ===== 独自のすりガラス調ボトムシートUI (Android標準UI全廃) =====
+
+            private fun createGlassDialog(): Pair<BottomSheetDialog, LinearLayout> {
+                val dialog = BottomSheetDialog(this)
+                val root = LinearLayout(this).apply {
+                    orientation = LinearLayout.VERTICAL
+                    setPadding(36, 24, 36, 48)
+                    val glassDrawable = GradientDrawable().apply {
+                        setColor(Color.parseColor("#F4FFFFFF")) // 95% 半透明ホワイト
+                        cornerRadii = floatArrayOf(48f, 48f, 48f, 48f, 0f, 0f, 0f, 0f)
+                        setStroke(2, Color.parseColor("#20000000"))
+                    }
+                    background = glassDrawable
+                }
+
+                // ガラスのつまみバー (ハンドル)
+                val handle = View(this).apply {
+                    val p = LinearLayout.LayoutParams(90, 10).apply {
+                        gravity = Gravity.CENTER_HORIZONTAL
+                        bottomMargin = 24
+                    }
+                    layoutParams = p
+                    background = GradientDrawable().apply {
+                        setColor(Color.parseColor("#40000000"))
+                        cornerRadius = 10f
+                    }
+                }
+                root.addView(handle)
+                dialog.setContentView(root)
+                dialog.window?.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)?.setBackgroundColor(Color.TRANSPARENT)
+                return Pair(dialog, root)
             }
 
-            private fun showTabSwitcher() {
-                val tabTitles = tabs.mapIndexed { idx, t ->
-                    val prefix = if (t.isIncognito) "🕶 " else ""
-                    "${idx + 1}. $prefix${t.title}"
-                }.toMutableList()
-                tabTitles.add("＋ 新しいタブを開く")
-                tabTitles.add("🕶 新しいシークレットタブを開く")
-                AlertDialog.Builder(this)
-                    .setTitle("タブ一覧 (${tabs.size})")
-                    .setItems(tabTitles.toTypedArray()) { _, which ->
-                        when (which) {
-                            tabs.size -> addNewTab("https://duckduckgo.com", false)
-                            tabs.size + 1 -> addNewTab("https://duckduckgo.com", true)
-                            else -> switchToTab(which)
+            private fun createGlassItem(icon: String, text: String, onClick: () -> Unit): LinearLayout {
+                return LinearLayout(this).apply {
+                    orientation = LinearLayout.HORIZONTAL
+                    gravity = Gravity.CENTER_VERTICAL
+                    setPadding(28, 26, 28, 26)
+                    layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+                        bottomMargin = 10
+                    }
+                    background = GradientDrawable().apply {
+                        setColor(Color.parseColor("#12000000")) // 半透明カード
+                        cornerRadius = 24f
+                    }
+                    isClickable = true
+                    setOnClickListener { onClick() }
+
+                    val tvIcon = TextView(this@MainActivity).apply {
+                        this.text = icon
+                        textSize = 18sp
+                        setPadding(0, 0, 24, 0)
+                    }
+                    val tvText = TextView(this@MainActivity).apply {
+                        this.text = text
+                        textSize = 15sp
+                        setTextColor(Color.parseColor("#1C1C1E"))
+                    }
+                    addView(tvIcon)
+                    addView(tvText)
+                }
+            }
+
+            // 独自すりガラスメニュー (⋮)
+            private fun showGlassMenu() {
+                val (dialog, root) = createGlassDialog()
+
+                val titleView = TextView(this).apply {
+                    text = currentWebView()?.title ?: "Chromer"
+                    textSize = 16sp
+                    setTextColor(Color.parseColor("#1C1C1E"))
+                    gravity = Gravity.CENTER
+                    setPadding(0, 0, 0, 20)
+                }
+                root.addView(titleView)
+
+                val tab = currentTab()
+                val desktopText = if (tab?.isDesktopMode == true) "PC版サイト表示 (ON)" else "PC版サイト表示 (OFF)"
+
+                root.addView(createGlassItem("＋", "新しいタブ") { dialog.dismiss(); addNewTab(DEFAULT_URL, false) })
+                root.addView(createGlassItem("🕶", "新しいシークレットタブ") { dialog.dismiss(); addNewTab(DEFAULT_URL, true) })
+                root.addView(createGlassItem("⭐️", "このページをブックマーク") { dialog.dismiss(); saveCurrentBookmark() })
+                root.addView(createGlassItem("📑", "ブックマーク一覧") { dialog.dismiss(); showGlassBookmarks() })
+                root.addView(createGlassItem("🕒", "閲覧履歴") { dialog.dismiss(); showGlassHistory() })
+                root.addView(createGlassItem("🔍", "ページ内検索") { dialog.dismiss(); findInPageBar.visibility = View.VISIBLE; etFindQuery.requestFocus() })
+                root.addView(createGlassItem("💻", desktopText) { dialog.dismiss(); toggleDesktopMode() })
+                root.addView(createGlassItem("↗️", "ページを共有") { dialog.dismiss(); shareCurrentPage() })
+                root.addView(createGlassItem("🧩", "拡張機能 (ダークモード等)") { dialog.dismiss(); showGlassExtensions() })
+                root.addView(createGlassItem("↻", "ページの再読み込み") { dialog.dismiss(); currentWebView()?.reload() })
+
+                dialog.show()
+            }
+
+            // 独自すりガラス・タブマネージャー
+            private fun showGlassTabSwitcher() {
+                val (dialog, root) = createGlassDialog()
+
+                val header = TextView(this).apply {
+                    text = "開いているタブ (${tabs.size})"
+                    textSize = 18sp
+                    setTextColor(Color.parseColor("#1C1C1E"))
+                    gravity = Gravity.CENTER
+                    setPadding(0, 0, 0, 20)
+                }
+                root.addView(header)
+
+                val scroll = ScrollView(this).apply {
+                    layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f)
+                }
+                val list = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+
+                tabs.forEachIndexed { idx, t ->
+                    val card = LinearLayout(this).apply {
+                        orientation = LinearLayout.HORIZONTAL
+                        gravity = Gravity.CENTER_VERTICAL
+                        setPadding(24, 20, 20, 20)
+                        layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+                            bottomMargin = 12
+                        }
+                        val isCurrent = idx == currentTabIndex
+                        background = GradientDrawable().apply {
+                            setColor(if (isCurrent) Color.parseColor("#30007AFF") else Color.parseColor("#15000000"))
+                            cornerRadius = 24f
+                            if (isCurrent) setStroke(2, Color.parseColor("#007AFF"))
+                        }
+                        setOnClickListener {
+                            dialog.dismiss()
+                            switchToTab(idx)
+                        }
+
+                        val info = LinearLayout(this@MainActivity).apply {
+                            orientation = LinearLayout.VERTICAL
+                            layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+                            val title = TextView(this@MainActivity).apply {
+                                text = (if (t.isIncognito) "🕶 " else "") + t.title
+                                textSize = 14sp
+                                setTextColor(Color.parseColor("#1C1C1E"))
+                                maxLines = 1
+                            }
+                            val url = TextView(this@MainActivity).apply {
+                                text = t.url
+                                textSize = 11sp
+                                setTextColor(Color.parseColor("#8E8E93"))
+                                maxLines = 1
+                            }
+                            addView(title)
+                            addView(url)
+                        }
+
+                        val closeBtn = Button(this@MainActivity).apply {
+                            text = "✕"
+                            textSize = 14sp
+                            background = null
+                            layoutParams = LinearLayout.LayoutParams(70, 70)
+                            setOnClickListener {
+                                dialog.dismiss()
+                                closeTab(idx)
+                            }
+                        }
+
+                        addView(info)
+                        addView(closeBtn)
+                    }
+                    list.addView(card)
+                }
+                scroll.addView(list)
+                root.addView(scroll)
+
+                // 新規タブボタン
+                val addBtn = Button(this).apply {
+                    text = "＋ 新しいタブを開く"
+                    setTextColor(Color.WHITE)
+                    background = GradientDrawable().apply {
+                        setColor(Color.parseColor("#007AFF"))
+                        cornerRadius = 28f
+                    }
+                    layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 110).apply {
+                        topMargin = 16
+                    }
+                    setOnClickListener {
+                        dialog.dismiss()
+                        addNewTab(DEFAULT_URL, false)
+                    }
+                }
+                root.addView(addBtn)
+
+                dialog.show()
+            }
+
+            // 独自すりガラス・ブックマーク一覧
+            private fun showGlassBookmarks() {
+                val (dialog, root) = createGlassDialog()
+                val header = TextView(this).apply {
+                    text = "📑 ブックマーク一覧"
+                    textSize = 18sp
+                    setTextColor(Color.parseColor("#1C1C1E"))
+                    gravity = Gravity.CENTER
+                    setPadding(0, 0, 0, 20)
+                }
+                root.addView(header)
+
+                val prefs = getSharedPreferences("chromer_prefs", Context.MODE_PRIVATE)
+                val json = prefs.getString("bookmarks", "[]") ?: "[]"
+                val array = JSONArray(json)
+
+                if (array.length() == 0) {
+                    val empty = TextView(this).apply {
+                        text = "ブックマークはありません"
+                        gravity = Gravity.CENTER
+                        setPadding(0, 40, 0, 40)
+                    }
+                    root.addView(empty)
+                } else {
+                    val scroll = ScrollView(this).apply {
+                        layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f)
+                    }
+                    val list = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+                    for (i in 0 until array.length()) {
+                        val obj = array.getJSONObject(i)
+                        val title = obj.optString("title", "無題")
+                        val url = obj.optString("url", "")
+                        list.addView(createGlassItem("⭐", title) {
+                            dialog.dismiss()
+                            currentWebView()?.loadUrl(url)
+                        })
+                    }
+                    scroll.addView(list)
+                    root.addView(scroll)
+
+                    val clearBtn = Button(this).apply {
+                        text = "全消去"
+                        setTextColor(Color.parseColor("#FF3B30"))
+                        background = null
+                        setOnClickListener {
+                            prefs.edit().remove("bookmarks").apply()
+                            dialog.dismiss()
+                            Toast.makeText(this@MainActivity, "ブックマークを消去しました", Toast.LENGTH_SHORT).show()
                         }
                     }
-                    .setNeutralButton("現在のタブを閉じる") { _, _ -> closeTab(currentTabIndex) }
-                    .setNegativeButton("閉じる", null).show()
+                    root.addView(clearBtn)
+                }
+                dialog.show()
+            }
+
+            // 独自すりガラス・閲覧履歴
+            private fun showGlassHistory() {
+                val (dialog, root) = createGlassDialog()
+                val header = TextView(this).apply {
+                    text = "🕒 閲覧履歴"
+                    textSize = 18sp
+                    setTextColor(Color.parseColor("#1C1C1E"))
+                    gravity = Gravity.CENTER
+                    setPadding(0, 0, 0, 20)
+                }
+                root.addView(header)
+
+                val prefs = getSharedPreferences("chromer_prefs", Context.MODE_PRIVATE)
+                val json = prefs.getString("history", "[]") ?: "[]"
+                val array = JSONArray(json)
+
+                if (array.length() == 0) {
+                    val empty = TextView(this).apply {
+                        text = "履歴はありません"
+                        gravity = Gravity.CENTER
+                        setPadding(0, 40, 0, 40)
+                    }
+                    root.addView(empty)
+                } else {
+                    val scroll = ScrollView(this).apply {
+                        layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f)
+                    }
+                    val list = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+                    for (i in array.length() - 1 downTo 0) {
+                        val obj = array.getJSONObject(i)
+                        val title = obj.optString("title", "無題")
+                        val url = obj.optString("url", "")
+                        list.addView(createGlassItem("🕒", title) {
+                            dialog.dismiss()
+                            currentWebView()?.loadUrl(url)
+                        })
+                    }
+                    scroll.addView(list)
+                    root.addView(scroll)
+
+                    val clearBtn = Button(this).apply {
+                        text = "履歴をすべて消去"
+                        setTextColor(Color.parseColor("#FF3B30"))
+                        background = null
+                        setOnClickListener {
+                            prefs.edit().remove("history").apply()
+                            dialog.dismiss()
+                            Toast.makeText(this@MainActivity, "履歴を全消去しました", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    root.addView(clearBtn)
+                }
+                dialog.show()
+            }
+
+            // 独自すりガラス・拡張機能メニュー
+            private fun showGlassExtensions() {
+                val (dialog, root) = createGlassDialog()
+                val header = TextView(this).apply {
+                    text = "🧩 拡張機能設定"
+                    textSize = 18sp
+                    setTextColor(Color.parseColor("#1C1C1E"))
+                    gravity = Gravity.CENTER
+                    setPadding(0, 0, 0, 20)
+                }
+                root.addView(header)
+
+                val darkStatus = if (ExtensionManager.isDarkModeEnabled) "ON" else "OFF"
+                root.addView(createGlassItem("🌙", "強制ダークモード ($darkStatus)") {
+                    ExtensionManager.isDarkModeEnabled = !ExtensionManager.isDarkModeEnabled
+                    currentWebView()?.reload()
+                    dialog.dismiss()
+                })
+
+                root.addView(createGlassItem("📺", "動画ピクチャーインピクチャー (PiP) 強制") {
+                    ExtensionManager.isPiPEnabled = true
+                    currentWebView()?.let { ExtensionManager.applyExtensions(it) }
+                    dialog.dismiss()
+                    Toast.makeText(this, "動画PiPを実行しました", Toast.LENGTH_SHORT).show()
+                })
+
+                dialog.show()
             }
 
             private fun toggleDesktopMode() {
@@ -720,25 +1022,6 @@ jobs:
                 Toast.makeText(this, "ブックマークに保存しました", Toast.LENGTH_SHORT).show()
             }
 
-            private fun showBookmarksDialog() {
-                val prefs = getSharedPreferences("chromer_prefs", Context.MODE_PRIVATE)
-                val json = prefs.getString("bookmarks", "[]") ?: "[]"
-                val array = JSONArray(json)
-                if (array.length() == 0) { Toast.makeText(this, "ブックマークはありません", Toast.LENGTH_SHORT).show(); return }
-                val titles = mutableListOf<String>()
-                val urls = mutableListOf<String>()
-                for (i in 0 until array.length()) {
-                    val obj = array.getJSONObject(i)
-                    titles.add(obj.optString("title", "無題"))
-                    urls.add(obj.optString("url", ""))
-                }
-                AlertDialog.Builder(this)
-                    .setTitle("📑 ブックマーク一覧")
-                    .setItems(titles.toTypedArray()) { _, which -> currentWebView()?.loadUrl(urls[which]) }
-                    .setPositiveButton("全削除") { _, _ -> prefs.edit().remove("bookmarks").apply(); Toast.makeText(this, "ブックマークを消去しました", Toast.LENGTH_SHORT).show() }
-                    .setNegativeButton("閉じる", null).show()
-            }
-
             private fun addHistory(title: String, url: String) {
                 val prefs = getSharedPreferences("chromer_prefs", Context.MODE_PRIVATE)
                 val json = prefs.getString("history", "[]") ?: "[]"
@@ -746,48 +1029,6 @@ jobs:
                 array.put(JSONObject().apply { put("title", title); put("url", url) })
                 if (array.length() > 100) array.remove(0)
                 prefs.edit().putString("history", array.toString()).apply()
-            }
-
-            private fun showHistoryDialog() {
-                val prefs = getSharedPreferences("chromer_prefs", Context.MODE_PRIVATE)
-                val json = prefs.getString("history", "[]") ?: "[]"
-                val array = JSONArray(json)
-                if (array.length() == 0) { Toast.makeText(this, "履歴はありません", Toast.LENGTH_SHORT).show(); return }
-                val titles = mutableListOf<String>()
-                val urls = mutableListOf<String>()
-                for (i in array.length() - 1 downTo 0) {
-                    val obj = array.getJSONObject(i)
-                    titles.add(obj.optString("title", "無題"))
-                    urls.add(obj.optString("url", ""))
-                }
-                AlertDialog.Builder(this)
-                    .setTitle("🕒 閲覧履歴")
-                    .setItems(titles.toTypedArray()) { _, which -> currentWebView()?.loadUrl(urls[which]) }
-                    .setPositiveButton("履歴を消去") { _, _ -> prefs.edit().remove("history").apply(); Toast.makeText(this, "履歴を全消去しました", Toast.LENGTH_SHORT).show() }
-                    .setNegativeButton("閉じる", null).show()
-            }
-
-            private fun showExtensionDialog() {
-                val status = if (ExtensionManager.isDarkModeEnabled) "ON" else "OFF"
-                val items = arrayOf("🌙 強制ダークモード: $status", "📺 動画ピクチャーインピクチャー (PiP) サポート", "＋ カスタムJavaScriptスクリプトを追加")
-                AlertDialog.Builder(this)
-                    .setTitle("🧩 Chromer 拡張機能")
-                    .setItems(items) { _, which ->
-                        when (which) {
-                            0 -> { ExtensionManager.isDarkModeEnabled = !ExtensionManager.isDarkModeEnabled; currentWebView()?.reload() }
-                            1 -> { ExtensionManager.isPiPEnabled = true; currentWebView()?.let { ExtensionManager.applyExtensions(it) }; Toast.makeText(this, "動画PiPを実行しました", Toast.LENGTH_SHORT).show() }
-                            2 -> {
-                                val input = EditText(this).apply { hint = "JavaScriptコードを入力" }
-                                AlertDialog.Builder(this)
-                                    .setTitle("カスタムスクリプト追加")
-                                    .setView(input)
-                                    .setPositiveButton("追加＆実行") { _, _ ->
-                                        val script = input.text.toString().trim()
-                                        if (script.isNotEmpty()) { ExtensionManager.customScripts.add(script); currentWebView()?.evaluateJavascript(script, null) }
-                                    }.setNegativeButton("キャンセル", null).show()
-                            }
-                        }
-                    }.setNegativeButton("閉じる", null).show()
             }
         }
         EOF
@@ -802,23 +1043,16 @@ jobs:
     - name: Publish to GitHub Releases
       uses: softprops/action-gh-release@v2
       with:
-        tag_name: "v2.0"
-        name: "Chromer v2.0 (Full Edition)"
+        tag_name: "v2.5"
+        name: "Chromer v2.5 (Glass UI & Google Edition)"
         body: |
-          ### 🚀 Chromer v2.0 正式版
-          - **Chrome同等機能**: マルチタブ（タブバッジ）、シークレットモード
-          - **ツール**: ブックマーク、閲覧履歴、PC版サイト切り替え、ページ内検索
-          - **メディア**: ファイルダウンロード、動画フルスクリーン再生、写真・書類アップロード
-          - **プライバシー**: 高速広告・トラッカー遮断エンジン
-          - **拡張機能**: 強制ダークモード、PiP強制、カスタムJavaScript
+          ### 💎 Chromer v2.5
+          - **Google検索エンジン統合**: 起動時・検索・新規タブすべてGoogleに完全対応
+          - **独自すりガラス（Glassmorphism）UI**: Android標準のダイアログを全廃し、美しい半透明ボトムシートメニューを採用
+          - **独自タブマネージャー**: ガラスカード形式でタブを快適プレビュー＆切り替え
+          - **広告・トラッカー遮断 ＆ 拡張機能**: 爆速描画とダークモードを維持
         draft: false
         prerelease: false
         files: Chromer.apk
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Upload Artifact as Backup
-      uses: actions/upload-artifact@v4
-      with:
-        name: Chromer-Debug-APK
-        path: Chromer.apk
