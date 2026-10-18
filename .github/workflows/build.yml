@@ -19,22 +19,84 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
+    - name: Force Fix Build Files
+      run: |
+        # settings.gradle.kts を正しい内容で上書き
+        cat << 'EOF' > settings.gradle.kts
+        pluginManagement {
+            repositories {
+                google()
+                mavenCentral()
+                gradlePluginPortal()
+            }
+        }
+        dependencyResolutionManagement {
+            repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+            repositories {
+                google()
+                mavenCentral()
+            }
+        }
+        rootProject.name = "Chromer"
+        include(":app")
+        EOF
+
+        # root の build.gradle.kts を正しい内容で上書き
+        cat << 'EOF' > build.gradle.kts
+        plugins {
+            id("com.android.application") version "8.4.2" apply false
+            id("org.jetbrains.kotlin.android") version "1.9.24" apply false
+        }
+        EOF
+
+        # app/build.gradle.kts を正しい内容で上書き
+        mkdir -p app
+        cat << 'EOF' > app/build.gradle.kts
+        plugins {
+            id("com.android.application")
+            id("org.jetbrains.kotlin.android")
+        }
+
+        android {
+            namespace = "app.hatent.chromer"
+            compileSdk = 34
+
+            defaultConfig {
+                applicationId = "app.hatent.chromer"
+                minSdk = 26
+                targetSdk = 34
+                versionCode = 1
+                versionName = "1.0"
+            }
+
+            buildTypes {
+                release {
+                    isMinifyEnabled = false
+                }
+            }
+            compileOptions {
+                sourceCompatibility = JavaVersion.VERSION_17
+                targetCompatibility = JavaVersion.VERSION_17
+            }
+            kotlinOptions {
+                jvmTarget = "17"
+            }
+        }
+
+        dependencies {
+            implementation("androidx.core:core-ktx:1.13.1")
+            implementation("androidx.appcompat:appcompat:1.7.0")
+            implementation("com.google.android.material:material:1.12.0")
+        }
+        EOF
+
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
       with:
         gradle-version: '8.7'
 
-    - name: Check Project Structure
-      run: |
-        echo "=== ファイル一覧 ==="
-        find . -maxdepth 3 -not -path '*/.*'
-        echo "=== settings.gradle.kts の中身 ==="
-        cat settings.gradle.kts || true
-        echo "=== プロジェクト一覧 ==="
-        gradle projects || true
-
     - name: Build Debug APK
-      run: gradle :app:assembleDebug --stacktrace
+      run: gradle :app:assembleDebug
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
