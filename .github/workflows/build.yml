@@ -357,7 +357,7 @@ jobs:
         }
         EOF
 
-        # MainActivity.kt (独自すりガラスUI ＆ Google検索エンジン統合版)
+        # MainActivity.kt
         cat << 'EOF' > app/src/main/java/app/hatent/chromer/MainActivity.kt
         package app.hatent.chromer
 
@@ -440,7 +440,6 @@ jobs:
                 val btnFindNext = findViewById<Button>(R.id.btnFindNext)
                 val btnFindClose = findViewById<Button>(R.id.btnFindClose)
 
-                // アドレスバーのすりガラス調カプセル装飾
                 val pillDrawable = GradientDrawable().apply {
                     setColor(Color.parseColor("#E5E9EE"))
                     cornerRadius = 35f
@@ -448,7 +447,6 @@ jobs:
                 }
                 etUrl.background = pillDrawable
 
-                // タブボタンの丸角バッジ
                 val tabDrawable = GradientDrawable().apply {
                     setColor(Color.parseColor("#E5E9EE"))
                     setStroke(2, Color.parseColor("#2C2C2E"))
@@ -456,7 +454,6 @@ jobs:
                 }
                 btnTabs.background = tabDrawable
 
-                // Googleで最初のタブを初期化
                 addNewTab(DEFAULT_URL, false)
 
                 btnBack.setOnClickListener { currentWebView()?.let { if (it.canGoBack()) it.goBack() } }
@@ -645,7 +642,6 @@ jobs:
                 findViewById<View>(R.id.mainBrowserLayout).visibility = View.VISIBLE
             }
 
-            // Google検索をデフォルトにしたURL読み込み
             private fun loadInputUrl() {
                 val input = etUrl.text.toString().trim()
                 if (input.isEmpty()) return
@@ -659,28 +655,25 @@ jobs:
                 currentWebView()?.loadUrl(url)
             }
 
-            // ===== 独自のすりガラス調ボトムシートUI (Android標準UI全廃) =====
+            // ===== 独自のすりガラス調ボトムシートUI =====
 
             private fun createGlassDialog(): Pair<BottomSheetDialog, LinearLayout> {
                 val dialog = BottomSheetDialog(this)
                 val root = LinearLayout(this).apply {
                     orientation = LinearLayout.VERTICAL
                     setPadding(36, 24, 36, 48)
-                    val glassDrawable = GradientDrawable().apply {
-                        setColor(Color.parseColor("#F4FFFFFF")) // 95% 半透明ホワイト
+                    background = GradientDrawable().apply {
+                        setColor(Color.parseColor("#F4FFFFFF"))
                         cornerRadii = floatArrayOf(48f, 48f, 48f, 48f, 0f, 0f, 0f, 0f)
                         setStroke(2, Color.parseColor("#20000000"))
                     }
-                    background = glassDrawable
                 }
 
-                // ガラスのつまみバー (ハンドル)
                 val handle = View(this).apply {
-                    val p = LinearLayout.LayoutParams(90, 10).apply {
+                    layoutParams = LinearLayout.LayoutParams(90, 10).apply {
                         gravity = Gravity.CENTER_HORIZONTAL
                         bottomMargin = 24
                     }
-                    layoutParams = p
                     background = GradientDrawable().apply {
                         setColor(Color.parseColor("#40000000"))
                         cornerRadius = 10f
@@ -701,7 +694,7 @@ jobs:
                         bottomMargin = 10
                     }
                     background = GradientDrawable().apply {
-                        setColor(Color.parseColor("#12000000")) // 半透明カード
+                        setColor(Color.parseColor("#12000000"))
                         cornerRadius = 24f
                     }
                     isClickable = true
@@ -709,12 +702,12 @@ jobs:
 
                     val tvIcon = TextView(this@MainActivity).apply {
                         this.text = icon
-                        textSize = 18sp
+                        textSize = 18f
                         setPadding(0, 0, 24, 0)
                     }
                     val tvText = TextView(this@MainActivity).apply {
                         this.text = text
-                        textSize = 15sp
+                        textSize = 15f
                         setTextColor(Color.parseColor("#1C1C1E"))
                     }
                     addView(tvIcon)
@@ -722,13 +715,12 @@ jobs:
                 }
             }
 
-            // 独自すりガラスメニュー (⋮)
             private fun showGlassMenu() {
                 val (dialog, root) = createGlassDialog()
 
                 val titleView = TextView(this).apply {
                     text = currentWebView()?.title ?: "Chromer"
-                    textSize = 16sp
+                    textSize = 16f
                     setTextColor(Color.parseColor("#1C1C1E"))
                     gravity = Gravity.CENTER
                     setPadding(0, 0, 0, 20)
@@ -752,13 +744,12 @@ jobs:
                 dialog.show()
             }
 
-            // 独自すりガラス・タブマネージャー
             private fun showGlassTabSwitcher() {
                 val (dialog, root) = createGlassDialog()
 
                 val header = TextView(this).apply {
                     text = "開いているタブ (${tabs.size})"
-                    textSize = 18sp
+                    textSize = 18f
                     setTextColor(Color.parseColor("#1C1C1E"))
                     gravity = Gravity.CENTER
                     setPadding(0, 0, 0, 20)
@@ -792,15 +783,16 @@ jobs:
                         val info = LinearLayout(this@MainActivity).apply {
                             orientation = LinearLayout.VERTICAL
                             layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+                            val prefix = if (t.isIncognito) "🕶 " else ""
                             val title = TextView(this@MainActivity).apply {
-                                text = (if (t.isIncognito) "🕶 " else "") + t.title
-                                textSize = 14sp
+                                text = prefix + t.title
+                                textSize = 14f
                                 setTextColor(Color.parseColor("#1C1C1E"))
                                 maxLines = 1
                             }
                             val url = TextView(this@MainActivity).apply {
                                 text = t.url
-                                textSize = 11sp
+                                textSize = 11f
                                 setTextColor(Color.parseColor("#8E8E93"))
                                 maxLines = 1
                             }
@@ -810,9 +802,9 @@ jobs:
 
                         val closeBtn = Button(this@MainActivity).apply {
                             text = "✕"
-                            textSize = 14sp
-                            background = null
-                            layoutParams = LinearLayout.LayoutParams(70, 70)
+                            textSize = 14f
+                            setBackgroundColor(Color.TRANSPARENT)
+                            layoutParams = LinearLayout.LayoutParams(90, 90)
                             setOnClickListener {
                                 dialog.dismiss()
                                 closeTab(idx)
@@ -827,7 +819,6 @@ jobs:
                 scroll.addView(list)
                 root.addView(scroll)
 
-                // 新規タブボタン
                 val addBtn = Button(this).apply {
                     text = "＋ 新しいタブを開く"
                     setTextColor(Color.WHITE)
@@ -835,7 +826,7 @@ jobs:
                         setColor(Color.parseColor("#007AFF"))
                         cornerRadius = 28f
                     }
-                    layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 110).apply {
+                    layoutParams = LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 120).apply {
                         topMargin = 16
                     }
                     setOnClickListener {
@@ -848,12 +839,11 @@ jobs:
                 dialog.show()
             }
 
-            // 独自すりガラス・ブックマーク一覧
             private fun showGlassBookmarks() {
                 val (dialog, root) = createGlassDialog()
                 val header = TextView(this).apply {
                     text = "📑 ブックマーク一覧"
-                    textSize = 18sp
+                    textSize = 18f
                     setTextColor(Color.parseColor("#1C1C1E"))
                     gravity = Gravity.CENTER
                     setPadding(0, 0, 0, 20)
@@ -903,12 +893,11 @@ jobs:
                 dialog.show()
             }
 
-            // 独自すりガラス・閲覧履歴
             private fun showGlassHistory() {
                 val (dialog, root) = createGlassDialog()
                 val header = TextView(this).apply {
                     text = "🕒 閲覧履歴"
-                    textSize = 18sp
+                    textSize = 18f
                     setTextColor(Color.parseColor("#1C1C1E"))
                     gravity = Gravity.CENTER
                     setPadding(0, 0, 0, 20)
@@ -958,12 +947,11 @@ jobs:
                 dialog.show()
             }
 
-            // 独自すりガラス・拡張機能メニュー
             private fun showGlassExtensions() {
                 val (dialog, root) = createGlassDialog()
                 val header = TextView(this).apply {
                     text = "🧩 拡張機能設定"
-                    textSize = 18sp
+                    textSize = 18f
                     setTextColor(Color.parseColor("#1C1C1E"))
                     gravity = Gravity.CENTER
                     setPadding(0, 0, 0, 20)
