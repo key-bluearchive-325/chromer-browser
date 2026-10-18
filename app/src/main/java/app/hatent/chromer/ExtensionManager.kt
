@@ -3,7 +3,6 @@ package app.hatent.chromer
 import android.webkit.WebView
 
 object ExtensionManager {
-
     var isDarkModeEnabled = false
     var isPiPEnabled = true
     var customScripts = mutableListOf<String>()
