@@ -28,6 +28,770 @@ jobs:
       with:
         gradle-version: '8.7'
 
+    - name: Force Generate Full Chrome Browser Project
+      run: |
+        # 1. gradle.properties
+        cat << 'EOF' > gradle.properties
+        android.useAndroidX=true
+        android.nonTransitiveRClass=true
+        EOF
+
+        # 2. settings.gradle.kts
+        cat << 'EOF' > settings.gradle.kts
+        pluginManagement {
+            repositories {
+                google()
+                mavenCentral()
+                gradlePluginPortal()
+            }
+        }
+        dependencyResolutionManagement {
+            repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+            repositories {
+                google()
+                mavenCentral()
+            }
+        }
+        rootProject.name = "Chromer"
+        include(":app")
+        EOF
+
+        # 3. root build.gradle.kts
+        cat << 'EOF' > build.gradle.kts
+        plugins {
+            id("com.android.application") version "8.4.2" apply false
+            id("org.jetbrains.kotlin.android") version "1.9.24" apply false
+        }
+        EOF
+
+        # 4. app/build.gradle.kts
+        mkdir -p app
+        cat << 'EOF' > app/build.gradle.kts
+        plugins {
+            id("com.android.application")
+            id("org.jetbrains.kotlin.android")
+        }
+
+        android {
+            namespace = "app.hatent.chromer"
+            compileSdk = 34
+
+            defaultConfig {
+                applicationId = "app.hatent.chromer"
+                minSdk = 26
+                targetSdk = 34
+                versionCode = 2
+                versionName = "2.0"
+            }
+
+            buildTypes {
+                release {
+                    isMinifyEnabled = false
+                }
+            }
+            compileOptions {
+                sourceCompatibility = JavaVersion.VERSION_17
+                targetCompatibility = JavaVersion.VERSION_17
+            }
+            kotlinOptions {
+                jvmTarget = "17"
+            }
+        }
+
+        dependencies {
+            implementation("androidx.core:core-ktx:1.13.1")
+            implementation("androidx.appcompat:appcompat:1.7.0")
+            implementation("androidx.activity:activity-ktx:1.9.0")
+            implementation("com.google.android.material:material:1.12.0")
+        }
+        EOF
+
+        # 5. AndroidManifest.xml
+        mkdir -p app/src/main
+        cat << 'EOF' > app/src/main/AndroidManifest.xml
+        <?xml version="1.0" encoding="utf-8"?>
+        <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+            <uses-permission android:name="android.permission.INTERNET" />
+            <application
+                android:allowBackup="true"
+                android:label="Chromer"
+                android:supportsRtl="true"
+                android:usesCleartextTraffic="true"
+                android:hardwareAccelerated="true"
+                android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+                <activity
+                    android:name=".MainActivity"
+                    android:exported="true"
+                    android:configChanges="orientation|screenSize|keyboardHidden">
+                    <intent-filter>
+                        <action android:name="android.intent.action.MAIN" />
+                        <category android:name="android.intent.category.LAUNCHER" />
+                    </intent-filter>
+                </activity>
+            </application>
+        </manifest>
+        EOF
+
+        # 6. activity_main.xml
+        rm -rf app/src/main/res/layout
+        mkdir -p app/src/main/res/layout
+        cat << 'EOF' > app/src/main/res/layout/activity_main.xml
+        <?xml version="1.0" encoding="utf-8"?>
+        <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#FFFFFF">
+
+            <LinearLayout
+                android:id="@+id/mainBrowserLayout"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:id="@+id/findInPageBar"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:background="#EFEFEF"
+                    android:gravity="center_vertical"
+                    android:paddingLeft="8dp"
+                    android:paddingRight="8dp"
+                    android:visibility="gone">
+
+                    <EditText
+                        android:id="@+id/etFindQuery"
+                        android:layout_width="0dp"
+                        android:layout_height="36dp"
+                        android:layout_weight="1"
+                        android:background="#FFFFFF"
+                        android:hint="ページ内を検索"
+                        android:imeOptions="actionSearch"
+                        android:inputType="text"
+                        android:paddingLeft="8dp"
+                        android:paddingRight="8dp"
+                        android:textSize="14sp" />
+
+                    <Button
+                        android:id="@+id/btnFindPrev"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="?android:attr/selectableItemBackgroundBorderless"
+                        android:text="▲" />
+
+                    <Button
+                        android:id="@+id/btnFindNext"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="?android:attr/selectableItemBackgroundBorderless"
+                        android:text="▼" />
+
+                    <Button
+                        android:id="@+id/btnFindClose"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="?android:attr/selectableItemBackgroundBorderless"
+                        android:text="✕" />
+                </LinearLayout>
+
+                <ProgressBar
+                    android:id="@+id/progressBar"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="2.5dp"
+                    android:visibility="gone" />
+
+                <FrameLayout
+                    android:id="@+id/webViewContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1" />
+
+                <LinearLayout
+                    android:id="@+id/bottomBar"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:background="#F8F8F8"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingLeft="4dp"
+                    android:paddingRight="4dp">
+
+                    <Button
+                        android:id="@+id/btnBack"
+                        android:layout_width="38dp"
+                        android:layout_height="38dp"
+                        android:background="?android:attr/selectableItemBackgroundBorderless"
+                        android:text="‹"
+                        android:textSize="20sp" />
+
+                    <Button
+                        android:id="@+id/btnForward"
+                        android:layout_width="38dp"
+                        android:layout_height="38dp"
+                        android:background="?android:attr/selectableItemBackgroundBorderless"
+                        android:text="›"
+                        android:textSize="20sp" />
+
+                    <EditText
+                        android:id="@+id/etUrl"
+                        android:layout_width="0dp"
+                        android:layout_height="38dp"
+                        android:layout_marginLeft="4dp"
+                        android:layout_marginRight="4dp"
+                        android:layout_weight="1"
+                        android:hint="検索またはWebサイト名"
+                        android:imeOptions="actionGo"
+                        android:inputType="textUri"
+                        android:maxLines="1"
+                        android:paddingLeft="12dp"
+                        android:paddingRight="12dp"
+                        android:textSize="13sp" />
+
+                    <Button
+                        android:id="@+id/btnTabs"
+                        android:layout_width="38dp"
+                        android:layout_height="38dp"
+                        android:background="?android:attr/selectableItemBackgroundBorderless"
+                        android:text="1"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                    <Button
+                        android:id="@+id/btnMenu"
+                        android:layout_width="38dp"
+                        android:layout_height="38dp"
+                        android:background="?android:attr/selectableItemBackgroundBorderless"
+                        android:text="⋮"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <FrameLayout
+                android:id="@+id/fullscreenContainer"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#000000"
+                android:visibility="gone" />
+
+        </FrameLayout>
+        EOF
+
+        # 7. Kotlinソースコード生成
+        rm -rf app/src/main/java
+        mkdir -p app/src/main/java/app/hatent/chromer
+
+        # AdBlocker.kt
+        cat << 'EOF' > app/src/main/java/app/hatent/chromer/AdBlocker.kt
+        package app.hatent.chromer
+        import android.net.Uri
+        import android.webkit.WebResourceResponse
+        import java.io.ByteArrayInputStream
+
+        object AdBlocker {
+            private val BLOCK_DOMAINS = hashSetOf(
+                "googleadservices.com", "googlesyndication.com", "doubleclick.net",
+                "google-analytics.com", "googletagmanager.com", "adnxs.com",
+                "criteo.com", "criteo.net", "outbrain.com", "taboola.com",
+                "scorecardresearch.com", "rubiconproject.com", "pubmatic.com",
+                "openx.net", "popads.net", "zedo.com", "adcolony.com",
+                "unityads.unity3d.com", "amazon-adsystem.com", "connect.facebook.net",
+                "ads-twitter.com", "analytics.twitter.com", "adroll.com"
+            )
+            fun isBlocked(url: String): Boolean {
+                val host = Uri.parse(url).host?.lowercase() ?: return false
+                return BLOCK_DOMAINS.any { host == it || host.endsWith(".$it") }
+            }
+            fun createEmptyResponse(): WebResourceResponse {
+                return WebResourceResponse("text/plain", "UTF-8", ByteArrayInputStream(ByteArray(0)))
+            }
+        }
+        EOF
+
+        # ExtensionManager.kt
+        cat << 'EOF' > app/src/main/java/app/hatent/chromer/ExtensionManager.kt
+        package app.hatent.chromer
+        import android.webkit.WebView
+
+        object ExtensionManager {
+            var isDarkModeEnabled = false
+            var isPiPEnabled = true
+            var customScripts = mutableListOf<String>()
+
+            private const val DARK_MODE_SCRIPT = """
+                (function() {
+                    if (document.getElementById('chromer-dark-style')) return;
+                    var style = document.createElement('style');
+                    style.id = 'chromer-dark-style';
+                    style.innerHTML = 'html { filter: invert(90%) hue-rotate(180deg) !important; background: #121212 !important; } img, video, canvas { filter: invert(100%) hue-rotate(180deg) !important; }';
+                    document.head.appendChild(style);
+                })();
+            """
+
+            private const val PIP_SCRIPT = """
+                (function() {
+                    var videos = document.querySelectorAll('video');
+                    videos.forEach(function(video) {
+                        video.removeAttribute('disablePictureInPicture');
+                        video.setAttribute('playsinline', '');
+                    });
+                })();
+            """
+
+            fun applyExtensions(webView: WebView) {
+                if (isDarkModeEnabled) {
+                    webView.evaluateJavascript(DARK_MODE_SCRIPT, null)
+                }
+                if (isPiPEnabled) {
+                    webView.evaluateJavascript(PIP_SCRIPT, null)
+                }
+                for (script in customScripts) {
+                    webView.evaluateJavascript(script, null)
+                }
+            }
+        }
+        EOF
+
+        # MainActivity.kt
+        cat << 'EOF' > app/src/main/java/app/hatent/chromer/MainActivity.kt
+        package app.hatent.chromer
+
+        import android.app.DownloadManager
+        import android.content.Context
+        import android.content.Intent
+        import android.graphics.Bitmap
+        import android.graphics.Color
+        import android.graphics.drawable.GradientDrawable
+        import android.net.Uri
+        import android.os.Bundle
+        import android.os.Environment
+        import android.view.View
+        import android.view.ViewGroup
+        import android.view.inputmethod.EditorInfo
+        import android.webkit.*
+        import android.widget.*
+        import androidx.activity.OnBackPressedCallback
+        import androidx.activity.result.contract.ActivityResultContracts
+        import androidx.appcompat.app.AlertDialog
+        import androidx.appcompat.app.AppCompatActivity
+        import org.json.JSONArray
+        import org.json.JSONObject
+        import java.util.UUID
+
+        data class BrowserTab(
+            val id: String = UUID.randomUUID().toString(),
+            var title: String = "新しいタブ",
+            var url: String = "https://duckduckgo.com",
+            var isDesktopMode: Boolean = false,
+            var isIncognito: Boolean = false,
+            val webView: WebView
+        )
+
+        class MainActivity : AppCompatActivity() {
+            private lateinit var webViewContainer: FrameLayout
+            private lateinit var fullscreenContainer: FrameLayout
+            private lateinit var etUrl: EditText
+            private lateinit var progressBar: ProgressBar
+            private lateinit var btnTabs: Button
+            private lateinit var findInPageBar: LinearLayout
+            private lateinit var etFindQuery: EditText
+
+            private val tabs = mutableListOf<BrowserTab>()
+            private var currentTabIndex = 0
+
+            private var customView: View? = null
+            private var customViewCallback: WebChromeClient.CustomViewCallback? = null
+            private var fileUploadCallback: ValueCallback<Array<Uri>>? = null
+
+            private val fileChooserLauncher = registerForActivityResult(
+                ActivityResultContracts.StartActivityForResult()
+            ) { result ->
+                val data = result.data?.data
+                val results = if (data != null) arrayOf(data) else null
+                fileUploadCallback?.onReceiveValue(results)
+                fileUploadCallback = null
+            }
+
+            override fun onCreate(savedInstanceState: Bundle?) {
+                super.onCreate(savedInstanceState)
+                setContentView(R.layout.activity_main)
+
+                webViewContainer = findViewById(R.id.webViewContainer)
+                fullscreenContainer = findViewById(R.id.fullscreenContainer)
+                etUrl = findViewById(R.id.etUrl)
+                progressBar = findViewById(R.id.progressBar)
+                btnTabs = findViewById(R.id.btnTabs)
+                findInPageBar = findViewById(R.id.findInPageBar)
+                etFindQuery = findViewById(R.id.etFindQuery)
+
+                val btnBack = findViewById<Button>(R.id.btnBack)
+                val btnForward = findViewById<Button>(R.id.btnForward)
+                val btnMenu = findViewById<Button>(R.id.btnMenu)
+                val btnFindPrev = findViewById<Button>(R.id.btnFindPrev)
+                val btnFindNext = findViewById<Button>(R.id.btnFindNext)
+                val btnFindClose = findViewById<Button>(R.id.btnFindClose)
+
+                val pillDrawable = GradientDrawable().apply {
+                    setColor(Color.parseColor("#EBEBEB"))
+                    cornerRadius = 30f
+                }
+                etUrl.background = pillDrawable
+
+                val tabDrawable = GradientDrawable().apply {
+                    setStroke(3, Color.parseColor("#333333"))
+                    cornerRadius = 10f
+                }
+                btnTabs.background = tabDrawable
+
+                addNewTab("https://duckduckgo.com", false)
+
+                btnBack.setOnClickListener { currentWebView()?.let { if (it.canGoBack()) it.goBack() } }
+                btnForward.setOnClickListener { currentWebView()?.let { if (it.canGoForward()) it.goForward() } }
+                btnTabs.setOnClickListener { showTabSwitcher() }
+                btnMenu.setOnClickListener { showChromeMenu() }
+
+                etUrl.setOnEditorActionListener { _, actionId, _ ->
+                    if (actionId == EditorInfo.IME_ACTION_GO) {
+                        loadInputUrl()
+                        true
+                    } else {
+                        false
+                    }
+                }
+
+                btnFindClose.setOnClickListener {
+                    findInPageBar.visibility = View.GONE
+                    currentWebView()?.clearMatches()
+                }
+                btnFindNext.setOnClickListener { currentWebView()?.findNext(true) }
+                btnFindPrev.setOnClickListener { currentWebView()?.findNext(false) }
+                etFindQuery.setOnEditorActionListener { _, actionId, _ ->
+                    if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                        currentWebView()?.findAllAsync(etFindQuery.text.toString())
+                        true
+                    } else {
+                        false
+                    }
+                }
+
+                onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+                    override fun handleOnBackPressed() {
+                        if (customView != null) {
+                            hideFullscreen()
+                        } else if (findInPageBar.visibility == View.VISIBLE) {
+                            findInPageBar.visibility = View.GONE
+                            currentWebView()?.clearMatches()
+                        } else if (currentWebView()?.canGoBack() == true) {
+                            currentWebView()?.goBack()
+                        } else if (tabs.size > 1) {
+                            closeTab(currentTabIndex)
+                        } else {
+                            isEnabled = false
+                            onBackPressedDispatcher.onBackPressed()
+                        }
+                    }
+                })
+            }
+
+            private fun currentTab(): BrowserTab? = tabs.getOrNull(currentTabIndex)
+            private fun currentWebView(): WebView? = currentTab()?.webView
+
+            private fun addNewTab(url: String, isIncognito: Boolean) {
+                val wv = WebView(this)
+                setupWebView(wv, isIncognito)
+                val tab = BrowserTab(title = "新しいタブ", url = url, isIncognito = isIncognito, webView = wv)
+                tabs.add(tab)
+                switchToTab(tabs.size - 1)
+                wv.loadUrl(url)
+            }
+
+            private fun switchToTab(index: Int) {
+                if (index !in tabs.indices) return
+                currentTabIndex = index
+                webViewContainer.removeAllViews()
+                val tab = tabs[index]
+                webViewContainer.addView(
+                    tab.webView,
+                    FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+                )
+                etUrl.setText(tab.webView.url ?: tab.url)
+                btnTabs.text = tabs.size.toString()
+            }
+
+            private fun closeTab(index: Int) {
+                if (index !in tabs.indices) return
+                val tab = tabs.removeAt(index)
+                tab.webView.destroy()
+                if (tabs.isEmpty()) {
+                    addNewTab("https://duckduckgo.com", false)
+                } else {
+                    val nextIndex = if (index >= tabs.size) tabs.size - 1 else index
+                    switchToTab(nextIndex)
+                }
+            }
+
+            private fun setupWebView(wv: WebView, isIncognito: Boolean) {
+                wv.settings.apply {
+                    javaScriptEnabled = true
+                    domStorageEnabled = !isIncognito
+                    databaseEnabled = !isIncognito
+                    offscreenPreRaster = true
+                    cacheMode = if (isIncognito) WebSettings.LOAD_NO_CACHE else WebSettings.LOAD_DEFAULT
+                    setSupportZoom(true)
+                    builtInZoomControls = true
+                    displayZoomControls = false
+                    useWideViewPort = true
+                    loadWithOverviewMode = true
+                }
+
+                wv.setDownloadListener { url, userAgent, contentDisposition, mimetype, _ ->
+                    try {
+                        val request = DownloadManager.Request(Uri.parse(url)).apply {
+                            setMimeType(mimetype)
+                            addRequestHeader("User-Agent", userAgent)
+                            addRequestHeader("Cookie", CookieManager.getInstance().getCookie(url))
+                            setDescription("ファイルをダウンロード中...")
+                            setTitle(URLUtil.guessFileName(url, contentDisposition, mimetype))
+                            setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+                            setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, URLUtil.guessFileName(url, contentDisposition, mimetype))
+                        }
+                        val dm = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+                        dm.enqueue(request)
+                        Toast.makeText(this, "ダウンロードを開始しました", Toast.LENGTH_SHORT).show()
+                    } catch (e: Exception) {
+                        Toast.makeText(this, "ダウンロード失敗: ${e.message}", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+                wv.webViewClient = object : WebViewClient() {
+                    override fun shouldInterceptRequest(view: WebView?, request: WebResourceRequest?): WebResourceResponse? {
+                        val requestUrl = request?.url?.toString() ?: return null
+                        if (AdBlocker.isBlocked(requestUrl)) return AdBlocker.createEmptyResponse()
+                        return super.shouldInterceptRequest(view, request)
+                    }
+
+                    override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
+                        super.onPageStarted(view, url, favicon)
+                        progressBar.visibility = View.VISIBLE
+                        if (view == currentWebView()) etUrl.setText(url)
+                    }
+
+                    override fun onPageFinished(view: WebView?, url: String?) {
+                        super.onPageFinished(view, url)
+                        progressBar.visibility = View.GONE
+                        val title = view?.title ?: url ?: "タブ"
+                        currentTab()?.let {
+                            it.title = title
+                            it.url = url ?: it.url
+                            if (!it.isIncognito && url != null) addHistory(title, url)
+                        }
+                        val hideAdCss = """
+                            javascript:(function() {
+                                var style = document.createElement('style');
+                                style.innerHTML = 'ins.adsbygoogle, .ad-banner, .ad-container, [id^="google_ads"] { display: none !important; }';
+                                document.head.appendChild(style);
+                            })()
+                        """.trimIndent()
+                        view?.evaluateJavascript(hideAdCss, null)
+                        view?.let { ExtensionManager.applyExtensions(it) }
+                    }
+                }
+
+                wv.webChromeClient = object : WebChromeClient() {
+                    override fun onProgressChanged(view: WebView?, newProgress: Int) {
+                        super.onProgressChanged(view, newProgress)
+                        if (view == currentWebView()) progressBar.progress = newProgress
+                    }
+                    override fun onShowCustomView(view: View?, callback: CustomViewCallback?) {
+                        if (customView != null) { callback?.onCustomViewHidden(); return }
+                        customView = view
+                        customViewCallback = callback
+                        fullscreenContainer.addView(view)
+                        fullscreenContainer.visibility = View.VISIBLE
+                        findViewById<View>(R.id.mainBrowserLayout).visibility = View.GONE
+                    }
+                    override fun onHideCustomView() { hideFullscreen() }
+                    override fun onShowFileChooser(
+                        webView: WebView?, filePathCallback: ValueCallback<Array<Uri>>?, fileChooserParams: FileChooserParams?
+                    ): Boolean {
+                        fileUploadCallback?.onReceiveValue(null)
+                        fileUploadCallback = filePathCallback
+                        val intent = fileChooserParams?.createIntent() ?: Intent(Intent.ACTION_GET_CONTENT).apply { type = "*/*" }
+                        try { fileChooserLauncher.launch(intent) } catch (e: Exception) { fileUploadCallback = null; return false }
+                        return true
+                    }
+                }
+            }
+
+            private fun hideFullscreen() {
+                customView?.let { fullscreenContainer.removeView(it) }
+                customView = null
+                customViewCallback?.onCustomViewHidden()
+                fullscreenContainer.visibility = View.GONE
+                findViewById<View>(R.id.mainBrowserLayout).visibility = View.VISIBLE
+            }
+
+            private fun loadInputUrl() {
+                val input = etUrl.text.toString().trim()
+                if (input.isEmpty()) return
+                val url = if (input.startsWith("http://") || input.startsWith("https://")) input
+                else if (input.contains(".") && !input.contains(" ")) "https://$input"
+                else "https://duckduckgo.com/?q=$input"
+                currentWebView()?.loadUrl(url)
+            }
+
+            private fun showChromeMenu() {
+                val tab = currentTab()
+                val desktopText = if (tab?.isDesktopMode == true) "☑ PC版サイト" else "☐ PC版サイト"
+                val items = arrayOf(
+                    "＋ 新しいタブ", "🕶 新しいシークレットタブ", "⭐️ このページをブックマーク",
+                    "📑 ブックマーク一覧", "🕒 履歴", "🔍 ページ内検索", desktopText,
+                    "↗️ ページを共有", "🧩 拡張機能", "↻ ページの再読み込み"
+                )
+                AlertDialog.Builder(this)
+                    .setItems(items) { _, which ->
+                        when (which) {
+                            0 -> addNewTab("https://duckduckgo.com", false)
+                            1 -> addNewTab("https://duckduckgo.com", true)
+                            2 -> saveCurrentBookmark()
+                            3 -> showBookmarksDialog()
+                            4 -> showHistoryDialog()
+                            5 -> { findInPageBar.visibility = View.VISIBLE; etFindQuery.requestFocus() }
+                            6 -> toggleDesktopMode()
+                            7 -> shareCurrentPage()
+                            8 -> showExtensionDialog()
+                            9 -> currentWebView()?.reload()
+                        }
+                    }.show()
+            }
+
+            private fun showTabSwitcher() {
+                val tabTitles = tabs.mapIndexed { idx, t ->
+                    val prefix = if (t.isIncognito) "🕶 " else ""
+                    "${idx + 1}. $prefix${t.title}"
+                }.toMutableList()
+                tabTitles.add("＋ 新しいタブを開く")
+                tabTitles.add("🕶 新しいシークレットタブを開く")
+                AlertDialog.Builder(this)
+                    .setTitle("タブ一覧 (${tabs.size})")
+                    .setItems(tabTitles.toTypedArray()) { _, which ->
+                        when (which) {
+                            tabs.size -> addNewTab("https://duckduckgo.com", false)
+                            tabs.size + 1 -> addNewTab("https://duckduckgo.com", true)
+                            else -> switchToTab(which)
+                        }
+                    }
+                    .setNeutralButton("現在のタブを閉じる") { _, _ -> closeTab(currentTabIndex) }
+                    .setNegativeButton("閉じる", null).show()
+            }
+
+            private fun toggleDesktopMode() {
+                val tab = currentTab() ?: return
+                tab.isDesktopMode = !tab.isDesktopMode
+                val wv = tab.webView
+                if (tab.isDesktopMode) {
+                    wv.settings.userAgentString = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+                    Toast.makeText(this, "PC版サイト表示に変更しました", Toast.LENGTH_SHORT).show()
+                } else {
+                    wv.settings.userAgentString = null
+                    Toast.makeText(this, "モバイル版表示に変更しました", Toast.LENGTH_SHORT).show()
+                }
+                wv.reload()
+            }
+
+            private fun shareCurrentPage() {
+                val url = currentWebView()?.url ?: return
+                val intent = Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_TEXT, url)
+                }
+                startActivity(Intent.createChooser(intent, "URLを共有"))
+            }
+
+            private fun saveCurrentBookmark() {
+                val wv = currentWebView() ?: return
+                val title = wv.title ?: wv.url ?: "ブックマーク"
+                val url = wv.url ?: return
+                val prefs = getSharedPreferences("chromer_prefs", Context.MODE_PRIVATE)
+                val json = prefs.getString("bookmarks", "[]") ?: "[]"
+                val array = JSONArray(json)
+                array.put(JSONObject().apply { put("title", title); put("url", url) })
+                prefs.edit().putString("bookmarks", array.toString()).apply()
+                Toast.makeText(this, "ブックマークに保存しました", Toast.LENGTH_SHORT).show()
+            }
+
+            private fun showBookmarksDialog() {
+                val prefs = getSharedPreferences("chromer_prefs", Context.MODE_PRIVATE)
+                val json = prefs.getString("bookmarks", "[]") ?: "[]"
+                val array = JSONArray(json)
+                if (array.length() == 0) { Toast.makeText(this, "ブックマークはありません", Toast.LENGTH_SHORT).show(); return }
+                val titles = mutableListOf<String>()
+                val urls = mutableListOf<String>()
+                for (i in 0 until array.length()) {
+                    val obj = array.getJSONObject(i)
+                    titles.add(obj.optString("title", "無題"))
+                    urls.add(obj.optString("url", ""))
+                }
+                AlertDialog.Builder(this)
+                    .setTitle("📑 ブックマーク一覧")
+                    .setItems(titles.toTypedArray()) { _, which -> currentWebView()?.loadUrl(urls[which]) }
+                    .setPositiveButton("全削除") { _, _ -> prefs.edit().remove("bookmarks").apply(); Toast.makeText(this, "ブックマークを消去しました", Toast.LENGTH_SHORT).show() }
+                    .setNegativeButton("閉じる", null).show()
+            }
+
+            private fun addHistory(title: String, url: String) {
+                val prefs = getSharedPreferences("chromer_prefs", Context.MODE_PRIVATE)
+                val json = prefs.getString("history", "[]") ?: "[]"
+                val array = JSONArray(json)
+                array.put(JSONObject().apply { put("title", title); put("url", url) })
+                if (array.length() > 100) array.remove(0)
+                prefs.edit().putString("history", array.toString()).apply()
+            }
+
+            private fun showHistoryDialog() {
+                val prefs = getSharedPreferences("chromer_prefs", Context.MODE_PRIVATE)
+                val json = prefs.getString("history", "[]") ?: "[]"
+                val array = JSONArray(json)
+                if (array.length() == 0) { Toast.makeText(this, "履歴はありません", Toast.LENGTH_SHORT).show(); return }
+                val titles = mutableListOf<String>()
+                val urls = mutableListOf<String>()
+                for (i in array.length() - 1 downTo 0) {
+                    val obj = array.getJSONObject(i)
+                    titles.add(obj.optString("title", "無題"))
+                    urls.add(obj.optString("url", ""))
+                }
+                AlertDialog.Builder(this)
+                    .setTitle("🕒 閲覧履歴")
+                    .setItems(titles.toTypedArray()) { _, which -> currentWebView()?.loadUrl(urls[which]) }
+                    .setPositiveButton("履歴を消去") { _, _ -> prefs.edit().remove("history").apply(); Toast.makeText(this, "履歴を全消去しました", Toast.LENGTH_SHORT).show() }
+                    .setNegativeButton("閉じる", null).show()
+            }
+
+            private fun showExtensionDialog() {
+                val status = if (ExtensionManager.isDarkModeEnabled) "ON" else "OFF"
+                val items = arrayOf("🌙 強制ダークモード: $status", "📺 動画ピクチャーインピクチャー (PiP) サポート", "＋ カスタムJavaScriptスクリプトを追加")
+                AlertDialog.Builder(this)
+                    .setTitle("🧩 Chromer 拡張機能")
+                    .setItems(items) { _, which ->
+                        when (which) {
+                            0 -> { ExtensionManager.isDarkModeEnabled = !ExtensionManager.isDarkModeEnabled; currentWebView()?.reload() }
+                            1 -> { ExtensionManager.isPiPEnabled = true; currentWebView()?.let { ExtensionManager.applyExtensions(it) }; Toast.makeText(this, "動画PiPを実行しました", Toast.LENGTH_SHORT).show() }
+                            2 -> {
+                                val input = EditText(this).apply { hint = "JavaScriptコードを入力" }
+                                AlertDialog.Builder(this)
+                                    .setTitle("カスタムスクリプト追加")
+                                    .setView(input)
+                                    .setPositiveButton("追加＆実行") { _, _ ->
+                                        val script = input.text.toString().trim()
+                                        if (script.isNotEmpty()) { ExtensionManager.customScripts.add(script); currentWebView()?.evaluateJavascript(script, null) }
+                                    }.setNegativeButton("キャンセル", null).show()
+                            }
+                        }
+                    }.setNegativeButton("閉じる", null).show()
+            }
+        }
+        EOF
+
     - name: Build Debug APK
       run: gradle :app:assembleDebug
 
@@ -52,3 +816,9 @@ jobs:
         files: Chromer.apk
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Upload Artifact as Backup
+      uses: actions/upload-artifact@v4
+      with:
+        name: Chromer-Debug-APK
+        path: Chromer.apk
