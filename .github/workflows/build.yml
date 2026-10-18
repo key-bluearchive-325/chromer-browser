@@ -21,7 +21,13 @@ jobs:
 
     - name: Force Fix Build Files
       run: |
-        # settings.gradle.kts を正しい内容で上書き
+        # 抜けていた gradle.properties を自動生成
+        cat << 'EOF' > gradle.properties
+        android.useAndroidX=true
+        android.nonTransitiveRClass=true
+        EOF
+
+        # settings.gradle.kts を生成
         cat << 'EOF' > settings.gradle.kts
         pluginManagement {
             repositories {
@@ -41,7 +47,7 @@ jobs:
         include(":app")
         EOF
 
-        # root の build.gradle.kts を正しい内容で上書き
+        # root の build.gradle.kts を生成
         cat << 'EOF' > build.gradle.kts
         plugins {
             id("com.android.application") version "8.4.2" apply false
@@ -49,7 +55,7 @@ jobs:
         }
         EOF
 
-        # app/build.gradle.kts を正しい内容で上書き
+        # app/build.gradle.kts を生成
         mkdir -p app
         cat << 'EOF' > app/build.gradle.kts
         plugins {
