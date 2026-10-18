@@ -1,0 +1,42 @@
+package app.hatent.chromer
+
+import android.webkit.WebView
+
+object ExtensionManager {
+
+    var isDarkModeEnabled = false
+    var isPiPEnabled = true
+    var customScripts = mutableListOf<String>()
+
+    private const val DARK_MODE_SCRIPT = """
+        (function() {
+            if (document.getElementById('chromer-dark-style')) return;
+            var style = document.createElement('style');
+            style.id = 'chromer-dark-style';
+            style.innerHTML = 'html { filter: invert(90%) hue-rotate(180deg) !important; background: #121212 !important; } img, video, canvas { filter: invert(100%) hue-rotate(180deg) !important; }';
+            document.head.appendChild(style);
+        })();
+    """
+
+    private const val PIP_SCRIPT = """
+        (function() {
+            var videos = document.querySelectorAll('video');
+            videos.forEach(function(video) {
+                video.removeAttribute('disablePictureInPicture');
+                video.setAttribute('playsinline', '');
+            });
+        })();
+    """
+
+    fun applyExtensions(webView: WebView) {
+        if (isDarkModeEnabled) {
+            webView.evaluateJavascript(DARK_MODE_SCRIPT, null)
+        }
+        if (isPiPEnabled) {
+            webView.evaluateJavascript(PIP_SCRIPT, null)
+        }
+        for (script in customScripts) {
+            webView.evaluateJavascript(script, null)
+        }
+    }
+}
